@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>தாஸ் சேவை - மேம்பட்ட CRM டாஷ்போர்டு</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        body {
+            background: linear-gradient(145deg, #eef2f7 0%, #d9e2ec 100%);
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+        }
+        .card-premium {
+            border-radius: 28px;
+            backdrop-filter: blur(2px);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+        }
+        .card-header-custom {
+            background: linear-gradient(98deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 28px 28px 0 0 !important;
+            padding: 1rem 1.5rem;
+            color: white;
+        }
+        .stat-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 24px;
+            background: white;
+            border-left: 6px solid;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        .stat-card .stat-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+        .stat-card .stat-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+        .badge-source {
+            font-size: 0.75rem;
+            padding: 5px 12px;
+            border-radius: 40px;
+        }
+        .whatsapp-green {
+            color: #25D366;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .whatsapp-green:hover {
+            color: #128C7E;
+            transform: scale(1.1);
+        }
+        .table-responsive-custom {
+            border-radius: 24px;
+            overflow-x: auto;
+        }
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        .action-icons i {
+            margin: 0 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        .action-icons i:hover {
+            transform: scale(1.15);
+        }
+        .reminder-badge {
+            background: #fff3e0;
+            color: #c47d00;
+            border-radius: 30px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .active-filter-badge {
+            background: #2a5298;
+            color: white;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+        }
+        .stat-card.active-filter {
+            background: #e8f0fe;
+            border-left-color: #1e3c72 !important;
+            box-shadow: 0 0 0 2px #1e3c72;
+        }
+        @keyframes tableHighlight {
+            0% { background-color: rgba(46, 125, 50, 0.1); }
+            100% { background-color: transparent; }
+        }
+        .table-highlight {
+            animation: tableHighlight 0.8s ease;
+        }
+        /* Dashboard Stats - Centered */
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        @media (min-width: 992px) {
+            .stats-container .col-lg-3 {
+                max-width: 23%;
+            }
+        }
+        .section-gap {
+            height: 25px;
+        }
+        .editing-row {
+            background-color: #fff3cd !important;
+            border-left: 4px solid #ffc107;
+        }
+        @media print {
+            .no-print, .btn-group, form, .action-icons, .stat-card, .btn-reminder, .whatsapp-green { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid px-3 px-md-4 py-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+        <h2 class="fw-bold"><i class="fas fa-chalkboard-user text-primary"></i> தாஸ் வாடிக்கையாளர் மையம்</h2>
+        <div>
+            <span class="badge bg-dark text-white p-2"><i class="far fa-clock"></i> நிகழ்நேரப் பதிவு</span>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 1. புதிய வாடிக்கையாளர் / திருத்தம் (REGISTRATION FORM) - TOP -->
+    <!-- ============================================================ -->
+    <div class="card card-premium shadow-lg mb-4" id="customerFormCard">
+        <div class="card-header-custom">
+            <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i> புதிய வாடிக்கையாளர் / திருத்தம்</h5>
+        </div>
+        <div class="card-body p-4">
+            <form id="customerForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold"><i class="fas fa-user"></i> வாடிக்கையாளர் பெயர் *</label>
+                        <input type="text" id="custName" class="form-control" placeholder="முழுப்பெயர்" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold"><i class="fas fa-phone-alt"></i> செல் நம்பர் *</label>
+                        <input type="tel" id="custMobile" class="form-control" placeholder="10 இலக்கங்கள்" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold"><i class="fas fa-concierge-bell"></i> தேவைப்படும் சேவை *</label>
+                        <input type="text" id="serviceReq" class="form-control" placeholder="எ.கா: லேப்டாப் ரிப்பேர்" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold"><i class="fas fa-rupee-sign"></i> சேவை கட்டணம் (₹)</label>
+                        <input type="number" id="serviceFee" class="form-control" placeholder="தொகை" value="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold"><i class="fas fa-headset"></i> தொடர்பு முறை *</label>
+                        <select id="contactMode" class="form-select">
+                            <option value="நேரில் வந்தார்">🏢 நேரில் வந்தார்</option>
+                            <option value="போன் மூலம்">📞 போன் மூலம்</option>
+                            <option value="வாட்சப் மூலம்">💬 வாட்சப் மூலம்</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold"><i class="fas fa-calendar-alt"></i> பதிவு நேரம்</label>
+                        <input type="text" id="registerTime" class="form-control" readonly placeholder="தானாக பதிவாகும்">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold"><i class="fas fa-calendar-check"></i> அடுத்த அப்பாயிண்ட்மெண்ட்</label>
+                        <input type="text" id="nextAppointment" class="form-control" placeholder="தேதி & நேரம் தேர்வு">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="fas fa-save"></i> சேமி / புதுப்பி</button>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" id="clearCustBtn" class="btn btn-outline-secondary w-100 rounded-pill"><i class="fas fa-undo-alt"></i> படிவம் காலி</button>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="attendedCheckbox">
+                            <label class="form-check-label fw-semibold" for="attendedCheckbox">
+                                <i class="fas fa-user-check text-success"></i> வந்தவராக குறிக்கவும் (Visited / Service Completed)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== GAP ===== -->
+    <div class="section-gap"></div>
+
+    <!-- ============================================================ -->
+    <!-- 2. டாஷ்போர்டு (DASHBOARD STATS) - MIDDLE -->
+    <!-- ============================================================ -->
+    <div class="stats-container row g-3 mb-4" id="dashboardStats">
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card p-3" data-filter-type="all" id="statAll">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="w-100">
+                        <div class="stat-number fw-bold text-primary" id="totalCount">0</div>
+                        <div class="stat-label">மொத்த வாடிக்கையாளர்கள்</div>
+                        <small class="text-muted">Total Customers</small>
+                    </div>
+                    <i class="fas fa-users fa-2x text-primary opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card p-3" data-filter-type="attended" id="statAttended">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="w-100">
+                        <div class="stat-number fw-bold text-success" id="attendedCount">0</div>
+                        <div class="stat-label">✅ வந்தவர்கள்</div>
+                        <small class="text-muted">Visited / Attended</small>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x text-success opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card p-3" data-filter-type="not-attended" id="statNotAttended">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="w-100">
+                        <div class="stat-number fw-bold text-danger" id="notAttendedCount">0</div>
+                        <div class="stat-label">⏳ வராதவர்கள்</div>
+                        <small class="text-muted">Not yet attended</small>
+                    </div>
+                    <i class="fas fa-hourglass-half fa-2x text-danger opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card p-3" data-filter-type="appointment" id="statAppointment">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="w-100">
+                        <div class="stat-number fw-bold text-warning" id="appointmentCount">0</div>
+                        <div class="stat-label">📅 Appointment உள்ளவர்கள்</div>
+                        <small class="text-muted">Upcoming appointments</small>
+                    </div>
+                    <i class="fas fa-calendar-alt fa-2x text-warning opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active filter display row -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-2 no-print">
+        <div id="activeFilterBadge" class="mb-2"></div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" id="clearDashboardFilter"><i class="fas fa-times-circle"></i> வடிப்பை நீக்கு / அனைத்தும்</button>
+        </div>
+    </div>
+
+    <!-- ===== GAP ===== -->
+    <div class="section-gap"></div>
+
+    <!-- ============================================================ -->
+    <!-- 3. வாடிக்கையாளர் பட்டியல் (CUSTOMER TABLE) - BOTTOM -->
+    <!-- ============================================================ -->
+    <!-- SEARCH + FILTER + IMPORT/EXPORT BUTTONS -->
+    <div class="row mb-3 no-print g-2">
+        <div class="col-md-5 col-lg-4">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control search-box" placeholder="பெயர் / செல் / சேவை மூலம் தேடுக...">
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <select id="filterMode" class="form-select">
+                <option value="">அனைத்து தொடர்பு முறைகள்</option>
+                <option value="நேரில் வந்தார்">🏢 நேரில் வந்தார்</option>
+                <option value="போன் மூலம்">📞 போன் மூலம்</option>
+                <option value="வாட்சப் மூலம்">💬 வாட்சப் மூலம்</option>
+            </select>
+        </div>
+        <div class="col-md-3 col-lg-5 text-md-end d-flex flex-wrap justify-content-md-end gap-2">
+            <button class="btn btn-success" id="exportExcelCRM"><i class="fas fa-file-excel"></i> Excel ஏற்றுமதி</button>
+            <button class="btn btn-info text-white" id="importExcelBtn"><i class="fas fa-file-import"></i> இறக்குமதி (Excel)</button>
+            <input type="file" id="importFileInput" accept=".xlsx, .xls, .csv" style="display: none;">
+            <button class="btn btn-warning" id="sendBulkReminderBtn"><i class="fas fa-bell"></i> நினைவூட்டல் (அனைவருக்கும்)</button>
+        </div>
+    </div>
+
+    <!-- Customer Table -->
+    <div class="card card-premium" id="customerTableCard">
+        <div class="card-header-custom d-flex justify-content-between">
+            <span><i class="fas fa-database"></i> வாடிக்கையாளர் பட்டியல் <span id="filterHint" class="badge bg-light text-dark ms-2"></span></span>
+            <span class="badge bg-light text-dark" id="recordCount">0 பதிவுகள்</span>
+        </div>
+        <div class="card-body p-0 table-responsive-custom">
+            <table class="table table-hover align-middle mb-0" id="customerTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th><th>பெயர்</th><th>செல்</th><th>சேவை</th>
+                        <th>கட்டணம் (₹)</th><th>தொடர்பு முறை</th><th>பதிவு நேரம்</th>
+                        <th>வந்தாரா?</th><th>அடுத்த App.</th><th>செயல்கள்</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <footer class="text-center mt-4 text-muted small no-print">✨ டாஷ்போர்டு கார்டுகளை கிளிக் செய்தால் உடனே பட்டியல் கீழே தெரியும் | WhatsApp & நினைவூட்டல் ஆதரவு</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script>
+    let customers = [];
+    let editIndex = null;
+    let currentDashboardFilter = null;
+
+    function loadCustomerData() {
+        const stored = localStorage.getItem('ThasCRM_V3');
+        if(stored) {
+            customers = JSON.parse(stored);
+            customers.forEach(c => {
+                if(c.registeredTime === undefined) c.registeredTime = new Date().toLocaleString();
+                if(c.nextAppointment === undefined) c.nextAppointment = "";
+                if(c.serviceFee === undefined) c.serviceFee = 0;
+                if(c.contactMode === undefined) c.contactMode = "நேரில் வந்தார்";
+                if(c.attended === undefined) c.attended = false;
+                if(c.id === undefined) c.id = Date.now() + Math.random();
+            });
+            saveCustomers();
+        } else {
+            customers = [
+                { id: Date.now()+1, name: "ரமேஷ்", mobile: "9876543210", service: "மொபைல் பேனல் மாற்றம்", fee: 850, contactMode: "நேரில் வந்தார்", registeredTime: new Date().toLocaleString(), nextAppointment: "2026-05-20 11:00 AM", attended: true },
+                { id: Date.now()+2, name: "சுதா", mobile: "9786543210", service: "லேப் திருத்தம்", fee: 1500, contactMode: "வாட்சப் மூலம்", registeredTime: new Date().toLocaleString(), nextAppointment: "2026-05-25 02:00 PM", attended: false },
+                { id: Date.now()+3, name: "கார்த்திக்", mobile: "9944322110", service: "பிரிண்டர் சர்வீஸ்", fee: 400, contactMode: "போன் மூலம்", registeredTime: new Date().toLocaleString(), nextAppointment: "", attended: false },
+                { id: Date.now()+4, name: "மீனாட்சி", mobile: "9123456780", service: "சாஃப்ட்வேர் இன்ஸ்டால்", fee: 600, contactMode: "நேரில் வந்தார்", registeredTime: new Date().toLocaleString(), nextAppointment: "2026-05-22 04:00 PM", attended: false }
+            ];
+            saveCustomers();
+        }
+        updateDashboardStats();
+        renderCustomerTable();
+        setCurrentTimeInForm();
+    }
+
+    function saveCustomers() {
+        localStorage.setItem('ThasCRM_V3', JSON.stringify(customers));
+        document.getElementById('recordCount').innerText = customers.length + " பதிவுகள்";
+        updateDashboardStats();
+    }
+
+    function updateDashboardStats() {
+        document.getElementById('totalCount').innerText = customers.length;
+        document.getElementById('attendedCount').innerText = customers.filter(c => c.attended === true).length;
+        document.getElementById('notAttendedCount').innerText = customers.filter(c => c.attended !== true).length;
+        document.getElementById('appointmentCount').innerText = customers.filter(c => c.nextAppointment && c.nextAppointment.trim() !== "").length;
+    }
+
+    function getFilteredData() {
+        let filtered = [...customers];
+        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || "";
+        const contactFilter = document.getElementById('filterMode')?.value || "";
+        
+        if(searchTerm) {
+            filtered = filtered.filter(c => c.name.toLowerCase().includes(searchTerm) || c.mobile.includes(searchTerm) || c.service.toLowerCase().includes(searchTerm));
+        }
+        if(contactFilter) {
+            filtered = filtered.filter(c => c.contactMode === contactFilter);
+        }
+        if(currentDashboardFilter === 'attended') {
+            filtered = filtered.filter(c => c.attended === true);
+        } else if(currentDashboardFilter === 'not-attended') {
+            filtered = filtered.filter(c => c.attended !== true);
+        } else if(currentDashboardFilter === 'appointment') {
+            filtered = filtered.filter(c => c.nextAppointment && c.nextAppointment.trim() !== "");
+        }
+        return filtered;
+    }
+
+    function renderCustomerTable() {
+        const filtered = getFilteredData();
+        const tbody = document.getElementById('customerTableBody');
+        tbody.innerHTML = "";
+        if(filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center">⚠️ வாடிக்கையாளர் எதுவும் இல்லை</td></tr>';
+            document.getElementById('filterHint').innerHTML = currentDashboardFilter ? ` (வடிப்பு: ${getFilterLabel()})` : '';
+            return;
+        }
+        document.getElementById('filterHint').innerHTML = currentDashboardFilter ? ` (வடிப்பு: ${getFilterLabel()})` : '';
+        
+        filtered.forEach((cust, idx) => {
+            const row = tbody.insertRow();
+            if (editIndex !== null && customers[editIndex] && customers[editIndex].id === cust.id) {
+                row.classList.add('editing-row');
+            }
+            row.insertCell(0).innerText = idx+1;
+            row.insertCell(1).innerHTML = `<strong>${escapeHtml(cust.name)}</strong>`;
+            row.insertCell(2).innerHTML = `${cust.mobile} <i class="fab fa-whatsapp whatsapp-green ms-1" data-mobile="${cust.mobile}" data-name="${cust.name}" data-service="${cust.service}" data-appointment="${cust.nextAppointment || ''}"></i>`;
+            row.insertCell(3).innerText = cust.service;
+            row.insertCell(4).innerText = `₹${cust.fee || 0}`;
+            let modeClass = cust.contactMode === "நேரில் வந்தார்" ? "bg-primary bg-opacity-10 text-primary" : (cust.contactMode === "போன் மூலம்" ? "bg-info bg-opacity-10 text-info" : "bg-success bg-opacity-10 text-success");
+            row.insertCell(5).innerHTML = `<span class="badge-source ${modeClass}">${cust.contactMode}</span>`;
+            row.insertCell(6).innerHTML = `<small><i class="far fa-clock"></i> ${cust.registeredTime || ''}</small>`;
+            const attendedStatus = cust.attended ? '<span class="badge bg-success"><i class="fas fa-check-circle"></i> வந்துவிட்டார்</span>' : '<span class="badge bg-secondary"><i class="fas fa-clock"></i> இதுவரை வரவில்லை</span>';
+            const toggleAttendBtn = `<button class="btn btn-sm btn-outline-success toggle-attend mt-1" data-id="${cust.id}" style="font-size:0.7rem;"><i class="fas fa-exchange-alt"></i> மாற்று</button>`;
+            row.insertCell(7).innerHTML = `<div class="d-flex flex-column align-items-start">${attendedStatus} ${toggleAttendBtn}</div>`;
+            
+            let nextAppHtml = cust.nextAppointment ? `<span class="reminder-badge"><i class="fas fa-calendar-week"></i> ${cust.nextAppointment}</span>` : `<span class="text-muted">—</span>`;
+            if(cust.nextAppointment) {
+                nextAppHtml += ` <i class="fas fa-bell text-warning reminder-single-btn" data-id="${cust.id}" style="cursor:pointer;" title="நினைவூட்டு"></i>`;
+            }
+            row.insertCell(8).innerHTML = nextAppHtml;
+            
+            const actionsCell = row.insertCell(9);
+            actionsCell.className = "action-icons";
+            actionsCell.innerHTML = `
+                <i class="fas fa-edit text-primary edit-customer" data-id="${cust.id}" title="திருத்து"></i>
+                <i class="fas fa-trash-alt text-danger delete-customer" data-id="${cust.id}" title="நீக்கு"></i>
+                <i class="fas fa-bell ms-2 text-warning reminder-single" data-id="${cust.id}" title="அப்பாயிண்ட்மெண்ட் நினைவூட்டல்"></i>
+            `;
+        });
+        
+        document.querySelectorAll('.edit-customer').forEach(el => {
+            el.addEventListener('click', (e) => { 
+                const id = parseFloat(el.getAttribute('data-id'));
+                editCustomerById(id); 
+            });
+        });
+        document.querySelectorAll('.delete-customer').forEach(el => {
+            el.addEventListener('click', (e) => { deleteCustomerById(parseFloat(el.getAttribute('data-id'))); });
+        });
+        document.querySelectorAll('.whatsapp-green').forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                const mobile = icon.getAttribute('data-mobile');
+                const name = icon.getAttribute('data-name');
+                const service = icon.getAttribute('data-service');
+                const appointment = icon.getAttribute('data-appointment');
+                sendWhatsAppMsg(mobile, name, service, appointment);
+            });
+        });
+        document.querySelectorAll('.reminder-single, .reminder-single-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const custId = parseFloat(btn.getAttribute('data-id'));
+                const customer = customers.find(c => c.id === custId);
+                if(customer && customer.nextAppointment) sendSingleReminder(customer);
+                else if(customer) alert(`${customer.name}க்கு அடுத்த அப்பாயிண்ட்மெண்ட் இல்லை.`);
+            });
+        });
+        document.querySelectorAll('.toggle-attend').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const custId = parseFloat(btn.getAttribute('data-id'));
+                toggleAttendedStatus(custId);
+            });
+        });
+    }
+
+    function toggleAttendedStatus(id) {
+        const customer = customers.find(c => c.id === id);
+        if(customer) {
+            customer.attended = !customer.attended;
+            saveCustomers();
+            renderCustomerTable();
+            updateDashboardStats();
+            highlightActiveCard();
+        }
+    }
+
+    function getFilterLabel() {
+        if(currentDashboardFilter === 'attended') return "வந்தவர்கள்";
+        if(currentDashboardFilter === 'not-attended') return "வராதவர்கள்";
+        if(currentDashboardFilter === 'appointment') return "அப்பாயிண்ட்மெண்ட் உள்ளவர்கள்";
+        return "அனைவரும்";
+    }
+
+    function highlightActiveCard() {
+        document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active-filter'));
+        if(currentDashboardFilter === 'all') document.getElementById('statAll')?.classList.add('active-filter');
+        else if(currentDashboardFilter === 'attended') document.getElementById('statAttended')?.classList.add('active-filter');
+        else if(currentDashboardFilter === 'not-attended') document.getElementById('statNotAttended')?.classList.add('active-filter');
+        else if(currentDashboardFilter === 'appointment') document.getElementById('statAppointment')?.classList.add('active-filter');
+    }
+
+    function setDashboardFilterAndScroll(filterType) {
+        currentDashboardFilter = filterType;
+        const activeDiv = document.getElementById('activeFilterBadge');
+        if(filterType) {
+            activeDiv.innerHTML = `<span class="active-filter-badge"><i class="fas fa-filter"></i> செயலில் உள்ள வடிப்பு: ${getFilterLabel()} </span>`;
+        } else {
+            activeDiv.innerHTML = '';
+        }
+        renderCustomerTable();
+        highlightActiveCard();
+        
+        const tableCard = document.getElementById('customerTableCard');
+        if(tableCard) {
+            tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            tableCard.classList.add('table-highlight');
+            setTimeout(() => tableCard.classList.remove('table-highlight'), 800);
+        }
+    }
+
+    document.getElementById('statAll').addEventListener('click', () => setDashboardFilterAndScroll(null));
+    document.getElementById('statAttended').addEventListener('click', () => setDashboardFilterAndScroll('attended'));
+    document.getElementById('statNotAttended').addEventListener('click', () => setDashboardFilterAndScroll('not-attended'));
+    document.getElementById('statAppointment').addEventListener('click', () => setDashboardFilterAndScroll('appointment'));
+    document.getElementById('clearDashboardFilter').addEventListener('click', () => setDashboardFilterAndScroll(null));
+
+    function setCurrentTimeInForm() {
+        document.getElementById('registerTime').value = new Date().toLocaleString('ta-IN', { hour12: true });
+    }
+    setInterval(setCurrentTimeInForm, 60000);
+
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;});}
+    
+    function editCustomerById(id) {
+        const cust = customers.find(c => c.id === id);
+        if(!cust) {
+            alert("வாடிக்கையாளர் கிடைக்கவில்லை!");
+            return;
+        }
+        editIndex = customers.findIndex(c => c.id === id);
+        
+        document.getElementById('custName').value = cust.name;
+        document.getElementById('custMobile').value = cust.mobile;
+        document.getElementById('serviceReq').value = cust.service;
+        document.getElementById('serviceFee').value = cust.fee || 0;
+        document.getElementById('contactMode').value = cust.contactMode;
+        document.getElementById('registerTime').value = cust.registeredTime;
+        document.getElementById('nextAppointment').value = cust.nextAppointment || "";
+        document.getElementById('attendedCheckbox').checked = cust.attended === true;
+        
+        document.querySelector('#customerForm button[type="submit"]').innerHTML = '<i class="fas fa-edit"></i> புதுப்பி';
+        document.getElementById('customerFormCard').scrollIntoView({ behavior: 'smooth' });
+        renderCustomerTable();
+    }
+    
+    function deleteCustomerById(id) {
+        if(confirm("நீக்க வேண்டுமா?")) {
+            customers = customers.filter(c => c.id !== id);
+            saveCustomers();
+            renderCustomerTable();
+            if(editIndex !== null && customers[editIndex] && customers[editIndex].id === id) {
+                resetForm();
+            }
+            updateDashboardStats();
+        }
+    }
+    
+    function resetForm() {
+        document.getElementById('customerForm').reset();
+        editIndex = null;
+        setCurrentTimeInForm();
+        document.getElementById('attendedCheckbox').checked = false;
+        document.querySelector('#customerForm button[type="submit"]').innerHTML = '<i class="fas fa-save"></i> சேமி / புதுப்பி';
+        document.getElementById('nextAppointment').value = "";
+        renderCustomerTable();
+    }
+    
+    document.getElementById('customerForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('custName').value.trim();
+        const mobile = document.getElementById('custMobile').value.trim();
+        const service = document.getElementById('serviceReq').value.trim();
+        const fee = parseInt(document.getElementById('serviceFee').value) || 0;
+        const contactMode = document.getElementById('contactMode').value;
+        const nextAppointment = document.getElementById('nextAppointment').value.trim();
+        let registeredTime = document.getElementById('registerTime').value;
+        const attended = document.getElementById('attendedCheckbox').checked;
+        
+        if(!name || !mobile || !service) { 
+            alert("பெயர், செல், சேவை கட்டாயம்"); 
+            return; 
+        }
+        if(!registeredTime) registeredTime = new Date().toLocaleString();
+        
+        if(editIndex !== null && customers[editIndex]) {
+            customers[editIndex] = { 
+                ...customers[editIndex], 
+                name, mobile, service, fee, contactMode, 
+                nextAppointment, registeredTime, attended 
+            };
+            editIndex = null;
+        } else {
+            const newId = Date.now() + Math.random();
+            customers.unshift({ 
+                id: newId, name, mobile, service, fee, contactMode, 
+                registeredTime, nextAppointment, attended: attended || false 
+            });
+        }
+        saveCustomers();
+        renderCustomerTable();
+        resetForm();
+        setCurrentTimeInForm();
+        document.querySelector('#customerForm button[type="submit"]').innerHTML = '<i class="fas fa-save"></i> சேமி / புதுப்பி';
+    });
+    
+    flatpickr("#nextAppointment", { enableTime: true, dateFormat: "Y-m-d h:i K", minDate: "today", time_24hr: false });
+    
+    function sendSingleReminder(customer) {
+        let msg = `🔔 *தாஸ் சேவை மையம் - நினைவூட்டல்*\n👤 ${customer.name}\n🛠️ சேவை: ${customer.service}\n📅 சந்திப்பு: ${customer.nextAppointment}\n🙏 சரியான நேரத்தில் வருக. நன்றி!`;
+        let phone = customer.mobile.replace(/\D/g, '');
+        if(phone.length === 10) phone = '91' + phone;
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+    
+    function sendWhatsAppMsg(mobile, name, service, appointment) {
+        let msg = `தாஸ் சேவை மையம்\nவணக்கம் ${name}\nசேவை: ${service}\n${appointment ? `அடுத்த சந்திப்பு: ${appointment}` : "நன்றி"}`;
+        let clean = mobile.replace(/\D/g, '');
+        if(clean.length === 10) clean = '91' + clean;
+        window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+    
+    document.getElementById('sendBulkReminderBtn').addEventListener('click', () => {
+        const withApp = customers.filter(c => c.nextAppointment && c.nextAppointment.trim() !== "");
+        if(withApp.length === 0) return alert("அப்பாயிண்ட்மெண்ட் உள்ளவர்கள் இல்லை");
+        if(confirm(`${withApp.length} பேருக்கு நினைவூட்டல் அனுப்ப வேண்டுமா?`)) withApp.forEach(c => sendSingleReminder(c));
+    });
+    
+    document.getElementById('exportExcelCRM').addEventListener('click', () => {
+        const exportArr = customers.map((c,i) => ({
+            'வ.எண்': i+1, 'பெயர்': c.name, 'செல்': c.mobile, 'சேவை': c.service,
+            'கட்டணம்': c.fee, 'தொடர்பு முறை': c.contactMode, 'பதிவு நேரம்': c.registeredTime,
+            'வந்தாரா?': c.attended ? "ஆம்" : "இல்லை", 'அடுத்த அப்பாயிண்ட்மெண்ட்': c.nextAppointment || '-'
+        }));
+        const ws = XLSX.utils.json_to_sheet(exportArr);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'CRM_DATA');
+        XLSX.writeFile(wb, `Thas_CRM_${new Date().toISOString().slice(0,19)}.xlsx`);
+    });
+    
+    document.getElementById('importExcelBtn').addEventListener('click', () => {
+        document.getElementById('importFileInput').click();
+    });
+    document.getElementById('importFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet);
+            let importedCount = 0;
+            for(let row of rows) {
+                let name = row['பெயர்'] || row['name'] || row['Name'] || '';
+                let mobile = row['செல்'] || row['mobile'] || row['Mobile'] || '';
+                let service = row['சேவை'] || row['service'] || '';
+                let fee = parseFloat(row['கட்டணம்'] || row['fee'] || 0);
+                let contactMode = row['தொடர்பு முறை'] || row['contactMode'] || 'நேரில் வந்தார்';
+                let attendedVal = (row['வந்தாரா?'] === "ஆம்") ? true : false;
+                let nextApp = row['அடுத்த அப்பாயிண்ட்மெண்ட்'] || '';
+                if(name && mobile) {
+                    customers.push({
+                        id: Date.now() + Math.random() + importedCount,
+                        name: String(name).trim(), mobile: String(mobile).trim(), service: String(service).trim(),
+                        fee: isNaN(fee)?0:fee, contactMode: contactMode, registeredTime: new Date().toLocaleString(),
+                        nextAppointment: nextApp, attended: attendedVal
+                    });
+                    importedCount++;
+                }
+            }
+            saveCustomers();
+            renderCustomerTable();
+            alert(`${importedCount} பதிவுகள் இறக்குமதி செய்யப்பட்டன.`);
+            updateDashboardStats();
+        };
+        reader.readAsArrayBuffer(file);
+        e.target.value = '';
+    });
+    
+    document.getElementById('clearCustBtn').addEventListener('click', resetForm);
+    document.getElementById('searchInput').addEventListener('input', () => renderCustomerTable());
+    document.getElementById('filterMode').addEventListener('change', () => renderCustomerTable());
+    
+    loadCustomerData();
+</script>
+</body>
+</html>
